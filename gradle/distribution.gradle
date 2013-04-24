@@ -1,0 +1,59 @@
+def localDeploymentFolder = "${buildDir}/maven-repo"
+
+def isDevBuild
+def isReleaseBuild
+def isCi
+
+def uploadRepositoryUrl
+
+if (hasProperty("release")) {
+    isReleaseBuild = true
+    uploadRepositoryUrl = "file:${localDeploymentFolder}/releases"
+}else if (hasProperty("ci")) {
+    isCi = true
+    project.version += '-SNAPSHOT'
+    uploadRepositoryUrl = "file:${localDeploymentFolder}/snapshots"
+}
+else {
+    isDevBuild = true
+}
+
+uploadArchives {
+    repositories {
+        if (isDevBuild) {
+            mavenLocal()
+        }else {
+            mavenDeployer() {
+                name = "GitHub"
+                
+                repository(url: uploadRepositoryUrl) 
+                                
+                pom.project {
+                    name project.name
+                    packaging 'jar'
+                    description project.description
+                    url 'https://github.com/mircea-pop/git-maven-repo.git'
+
+                    licenses {
+                        license {
+                            name 'The Apache Software License, Version 2.0'
+                            url 'http://www.apache.org/licenses/LICENSE-2.0'
+                        }
+                    }
+                    scm {
+                        url 'scm:git@github.com:mircea-pop/git-maven-repo.git'
+                        connection 'scm:git@github.com:mircea-pop/git-maven-repo.git'
+                        developerConnection 'scm:git@github.com:mircea-pop/git-maven-repo.git'
+                    }
+
+                    developers {
+                        developer {
+                            id 'mircea-pop'
+                            name 'Mircea Pop'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

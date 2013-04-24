@@ -1,0 +1,24 @@
+buildscript{ 
+    repositories {
+        mavenCentral()
+        }
+     }
+
+repositories { mavenCentral() }
+
+apply plugin: "eclipse"
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+dependencies {
+    groovy localGroovy()
+    compile gradleApi()
+    compile 'org.ajoberstar:gradle-git:0.5.0'
+}
+
+group = "com.epages.git"
+description = 'Gradle plugin to build and publish maven artifacts to GIT'
+archivesBaseName = "git-maven-repo"
+version = "0.1"
+
+apply from : './gradle/distribution.gradle'
