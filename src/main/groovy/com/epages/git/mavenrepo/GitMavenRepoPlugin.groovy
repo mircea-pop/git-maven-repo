@@ -6,7 +6,6 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.MavenPlugin
 
 class GitMavenRepoPlugin implements Plugin<Project> {
-
     private static final GIT_MV_REPO_GROUP = "Git-Maven-Repo"
 
     @Override
@@ -42,6 +41,9 @@ class GitMavenRepoPlugin implements Plugin<Project> {
         project.addGhPages.dependsOn project.uploadArchives
     }
 
+    /**
+     * FIXME - extension variables configured on the project are not passed. Default are used! 
+     */
     private void configureMaven(final Project project, final GitMavenRepoExtension extension) {
         def isDevBuild
         def uploadRepositoryUrl

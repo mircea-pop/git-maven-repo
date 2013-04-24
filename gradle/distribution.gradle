@@ -1,16 +1,11 @@
-def localDeploymentFolder = "${buildDir}/maven-repo"
+ext { localDeploymentFolder = "${buildDir}/maven-repo" }
 
 def isDevBuild
-def isReleaseBuild
-def isCi
-
 def uploadRepositoryUrl
 
-if (hasProperty("release")) {
-    isReleaseBuild = true
+if (project.hasProperty("release")) {
     uploadRepositoryUrl = "file:${localDeploymentFolder}/releases"
-}else if (hasProperty("ci")) {
-    isCi = true
+}else if (project.hasProperty("ci")) {
     project.version += '-SNAPSHOT'
     uploadRepositoryUrl = "file:${localDeploymentFolder}/snapshots"
 }
@@ -25,9 +20,9 @@ uploadArchives {
         }else {
             mavenDeployer() {
                 name = "GitHub"
-                
-                repository(url: uploadRepositoryUrl) 
-                                
+
+                repository(url: uploadRepositoryUrl)
+
                 pom.project {
                     name project.name
                     packaging 'jar'

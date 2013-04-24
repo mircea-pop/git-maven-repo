@@ -1,8 +1,7 @@
-buildscript{ 
-    repositories {
-        mavenCentral()
-        }
-     }
+buildscript{
+    repositories { mavenCentral() }
+    dependencies { classpath 'org.ajoberstar:gradle-git:0.5.0'}
+}
 
 repositories { mavenCentral() }
 
@@ -22,3 +21,4 @@ archivesBaseName = "git-maven-repo"
 version = "0.1"
 
 apply from : './gradle/distribution.gradle'
+apply from : './gradle/git.gradle'
