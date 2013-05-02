@@ -33,6 +33,8 @@ In order to use it, you have to define the `uploadArchives` task and then run
 gradle publishGitRepo
 ```
 
+If the `uploadArchives` task is not defined, the default is used: basic POM configuration
+
 The plugin is `snapshots` and `releases` aware.   
 
 ### Configuring Repository To Push To
