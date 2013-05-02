@@ -1,76 +1,108 @@
 package com.epages.git.mavenrepo
 
-import org.ajoberstar.gradle.git.plugins.GithubPagesPlugin
+import org.ajoberstar.gradle.git.tasks.GitAdd
+import org.ajoberstar.gradle.git.tasks.GitBase
+import org.ajoberstar.gradle.git.tasks.GitClone
+import org.ajoberstar.gradle.git.tasks.GitCommit
+import org.ajoberstar.gradle.git.tasks.GitPush
+import org.eclipse.jgit.api.Git
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.plugins.MavenPlugin
+import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.TaskCollection
 
 class GitMavenRepoPlugin implements Plugin<Project> {
-    private static final GIT_MV_REPO_GROUP = "Git-Maven-Repo"
+    static final String USERNAME_PROP = 'github.credentials.username'
+    static final String PASSWORD_PROP = 'github.credentials.password'
+
+    static final String TASK_GROUP_NAME = "git-mvn-Repo"
+    static final String CLEAN_TASK_NAME = 'cleanGitRepo'
+    static final String CLONE_TASK_NAME = 'cloneGitRepo'
+    static final String ADD_TASK_NAME = 'addGitRepo'
+    static final String COMMIT_TASK_NAME = 'commitGitRepo'
+    static final String PUSH_TASK_NAME = 'pushGitRepo'
+    static final String PUBLISH_TASK_NAME = 'publishGitRepo'
 
     @Override
-    public void apply(Project project) {
+    public void apply(final Project project) {
         project.apply (plugin : MavenPlugin)
-        
-        project.apply (plugin : GithubPagesPlugin)
-        
+
         GitMavenRepoExtension extension = new GitMavenRepoExtension(project)
 
         project.extensions.add('githubRepo', extension)
+        
+        setDefaultCredentials(project, extension)
 
-        configureMaven(project, extension)
+        configureTasks(project, extension)
 
-        project.githubPages {
-            repoUri = {extension.gitMavenRepo}
-            workingPath = {extension.workingPath}
+        TaskCollection tasks = project.tasks.matching { it.name.endsWith('GitRepo') }
+
+        tasks.all { it.group = TASK_GROUP_NAME }
+
+        tasks.withType(GitBase) {
+            it.repoPath = { extension.workingPath }
         }
-
-        project.cloneGhPages.branch = {extension.gitBranch}
-        project.commitGhPages.message = "${project.name}-${project.version}"
-
-        project.task("publish2Git", dependsOn: project.pushGhPages) {
-            group = GIT_MV_REPO_GROUP
-            description = "Runs the maven installer and pushes the artifacts to the Git-based maven repository"
-        }
-
-        project.task("commit2Git", dependsOn: project.commitGhPages){
-            group = GIT_MV_REPO_GROUP
-            description = "Runs the maven installer and commits the artifacts to the Git-based maven repository"
-        }
-
-        project.addGhPages.dependsOn project.uploadArchives
     }
 
     /**
-     * FIXME - extension variables configured on the project are not passed. Default are used! 
+     * Configures the tasks to publish to gh-pages.
+     * @param project the project to configure
+     * @param extension the plugin extension
      */
-    private void configureMaven(final Project project, final GitMavenRepoExtension extension) {
-        def isDevBuild
-        def uploadRepositoryUrl
+    private void configureTasks(final Project project, final GitMavenRepoExtension extension) {
+        Delete clean = project.tasks.add(CLEAN_TASK_NAME, Delete)
+        clean.description = 'Cleans the working path of the repo.'
+        clean.delete { extension.workingPath }
 
-        if (project.hasProperty("release")) {
-            uploadRepositoryUrl = "file:${extension.workingPath}/releases"
-        }else if (project.hasProperty("ci")) {
-            project.version += '-SNAPSHOT'
-            uploadRepositoryUrl = "file:${extension.workingPath}/snapshots"
-        }else {
-            isDevBuild = true
+        GitClone clone = project.tasks.add(CLONE_TASK_NAME, GitClone)
+        clone.description = 'Clones the Github repo checking out the defined branch'
+        clone.dependsOn clean
+        clone.conventionMapping.credentials = { extension.credentials }
+        clone.uri = { extension.gitMavenRepo }
+        clone.branch = { extension.gitBranch }
+        clone.destinationPath = { extension.workingPath }
+        clone.doLast {
+            String currentBranch = Git.open(clone.destinationDir).repository.branch
+            if (currentBranch != clone.branch) {
+                throw new GradleException("Intended to checkout ${clone.branch}, but currently on ${currentBranch}.  You may need to create ${clone.branch}.")
+            }
         }
 
-        project.uploadArchives {
-            repositories {
-                if (isDevBuild) {
-                    mavenLocal()
-                }else {
-                    mavenDeployer {
-                        name = "GitHub"
+        GitAdd add = project.tasks.add(ADD_TASK_NAME, GitAdd)
+        add.description = 'Adds all changes to the working defined repo'
+        add.dependsOn clone
 
-                        repository(url: uploadRepositoryUrl)
+        GitCommit commit = project.tasks.add(COMMIT_TASK_NAME, GitCommit)
+        commit.description = 'Commits all changes to the working defined repo'
+        commit.message = {"${project.name}-${project.version}"}
+        commit.dependsOn add
 
-                        pom.project  {extension.pom}
-                    }
-                }
-            }
+        GitPush push = project.tasks.add(PUSH_TASK_NAME, GitPush)
+        push.description = 'Pushes all changes in the working defined repo to Github'
+        push.dependsOn commit
+        push.conventionMapping.credentials = { extension.credentials }
+
+        Task publish = project.tasks.add(PUBLISH_TASK_NAME)
+        publish.description = 'Publishes all defined repo changes to Github'
+        publish.dependsOn push
+
+        add.dependsOn  project.uploadArchives
+    }
+
+    /**
+     * Sets the default credentials based on project properties.
+     * @param project the project to get properties from
+     * @param extension the extension to configure credentials for
+     */
+    private void setDefaultCredentials(Project project, GitMavenRepoExtension extension) {
+        if (project.hasProperty(USERNAME_PROP)) {
+            extension.credentials.username = project[USERNAME_PROP]
+        }
+        if (project.hasProperty(PASSWORD_PROP)) {
+            extension.credentials.password = project[PASSWORD_PROP]
         }
     }
 }
