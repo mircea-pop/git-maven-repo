@@ -77,7 +77,7 @@ class GitMavenRepoPlugin implements Plugin<Project> {
 
         GitCommit commit = project.tasks.add(COMMIT_TASK_NAME, GitCommit)
         commit.description = 'Commits all changes to the working defined repo'
-        commit.message = "${project.name}-${project.version}"
+        commit.message = {"${project.name}-${project.version}"}
         commit.dependsOn add
 
         GitPush push = project.tasks.add(PUSH_TASK_NAME, GitPush)
