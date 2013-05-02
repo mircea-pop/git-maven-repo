@@ -33,9 +33,50 @@ In order to use it, you have to define the `uploadArchives` task and then run
 gradle publishGitRepo
 ```
 
-If the `uploadArchives` task is not defined, the default is used: basic POM configuration
-
 The plugin is `snapshots` and `releases` aware.   
+
+###`uploadArchives`
+
+The `uploadArchives` task has to configure a repository on the local system to publish to.
+The repository will be used by the plugin to publish to github.
+
+Example configuration of `uploadArchives`
+
+```
+uploadArchives {
+    repositories {
+        mavenDeployer() {
+            repository(url: "file:${project.buildDir}/maven-repo/releases)
+
+            pom.project {
+                name project.name
+                packaging 'jar'
+                description project.description
+                url 'https://github.com/mircea-pop/git-maven-repo.git'
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                scm {
+                    url 'scm:git@github.com:mircea-pop/git-maven-repo.git'
+                    connection 'scm:git@github.com:mircea-pop/git-maven-repo.git'
+                    developerConnection 'scm:git@github.com:mircea-pop/git-maven-repo.git'
+                }
+
+                developers {
+                    developer {
+                        id 'mircea-pop'
+                        name 'Mircea Pop'
+                    }
+                }
+            }
+        }
+    }
+}
+```
 
 ### Configuring Repository To Push To
 
