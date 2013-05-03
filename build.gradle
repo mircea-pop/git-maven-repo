@@ -18,7 +18,7 @@ dependencies {
 group = "com.epages.git"
 description = 'Gradle plugin to build and publish maven artifacts to GIT'
 archivesBaseName = "git-maven-repo"
-version = "0.1"
+version = "0.2"
 
 apply from : './gradle/distribution.gradle'
 apply from : './gradle/git.gradle'

@@ -14,17 +14,20 @@ import org.gradle.api.plugins.MavenPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
 
-class GitMavenRepoPlugin implements Plugin<Project> {
-    static final String USERNAME_PROP = 'github.credentials.username'
-    static final String PASSWORD_PROP = 'github.credentials.password'
+import com.epages.git.mavenrepo.task.Preconditions
 
-    static final String TASK_GROUP_NAME = "git-mvn-Repo"
-    static final String CLEAN_TASK_NAME = 'cleanGitRepo'
-    static final String CLONE_TASK_NAME = 'cloneGitRepo'
-    static final String ADD_TASK_NAME = 'addGitRepo'
-    static final String COMMIT_TASK_NAME = 'commitGitRepo'
-    static final String PUSH_TASK_NAME = 'pushGitRepo'
-    static final String PUBLISH_TASK_NAME = 'publishGitRepo'
+class GitMavenRepoPlugin implements Plugin<Project> {
+    private static final String USERNAME_PROP = 'github.credentials.username'
+    private static final String PASSWORD_PROP = 'github.credentials.password'
+
+    private static final String TASK_GROUP_NAME = "git-mvn-Repo"
+    private static final String CLEAN_TASK_NAME = 'cleanGitRepo'
+    private static final String CLONE_TASK_NAME = 'cloneGitRepo'
+    private static final String ADD_TASK_NAME = 'addGitRepo'
+    private static final String COMMIT_TASK_NAME = 'commitGitRepo'
+    private static final String PUSH_TASK_NAME = 'pushGitRepo'
+    private static final String PUBLISH_TASK_NAME = 'publishGitRepo'
+    private static final String PRECONDITIONS_TASK_NAME = 'preconditionsGitRepo'
 
     @Override
     public void apply(final Project project) {
@@ -33,7 +36,7 @@ class GitMavenRepoPlugin implements Plugin<Project> {
         GitMavenRepoExtension extension = new GitMavenRepoExtension(project)
 
         project.extensions.add('githubRepo', extension)
-        
+
         setDefaultCredentials(project, extension)
 
         configureTasks(project, extension)
@@ -53,9 +56,13 @@ class GitMavenRepoPlugin implements Plugin<Project> {
      * @param extension the plugin extension
      */
     private void configureTasks(final Project project, final GitMavenRepoExtension extension) {
+        Preconditions preconditions = project.tasks.add(PRECONDITIONS_TASK_NAME, Preconditions)
+        preconditions.description = 'Check preconditions for the git-maven-repo plugin'
+        
         Delete clean = project.tasks.add(CLEAN_TASK_NAME, Delete)
         clean.description = 'Cleans the working path of the repo.'
         clean.delete { extension.workingPath }
+        clean.dependsOn preconditions
 
         GitClone clone = project.tasks.add(CLONE_TASK_NAME, GitClone)
         clone.description = 'Clones the Github repo checking out the defined branch'

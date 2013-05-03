@@ -30,22 +30,16 @@ class GitMavenRepoExtension {
     }
 
     String getWorkingPath() {
-        def workingPath = "${project.buildDir}/maven-repo"
+        def mavenRepositories = project.tasks.uploadArchives.repositories
+        def workingPath = mavenRepositories.find(){it instanceof BaseMavenDeployer}.repository.url
         
-        def mavenRepositories = project.tasks.getByName("uploadArchives").repositories
-
-        def hasMavenDeployer = mavenRepositories.find() instanceof BaseMavenDeployer
-
-        if (hasMavenDeployer){
-            workingPath = mavenRepositories.find().repository.url
-            if (workingPath.endsWith("/releases")) {
-                workingPath = workingPath.minus("/releases")
-            }
-            if (workingPath.endsWith("/snapshots")) {
-                workingPath = workingPath.minus("/snapshots")
-            }
+        if (workingPath?.endsWith("/releases")) {
+            workingPath = workingPath.minus("/releases")
         }
-        return workingPath
+        if (workingPath?.endsWith("/snapshots")) {
+            workingPath = workingPath.minus("/snapshots")
+        }
+        return workingPath ?: "${project.buildDir}/maven-repo"
     }
 
     String getGitBranch() {
