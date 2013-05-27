@@ -35,7 +35,7 @@ class GitMavenRepoPlugin implements Plugin<Project> {
 
         GitMavenRepoExtension extension = new GitMavenRepoExtension(project)
 
-        project.extensions.add('githubRepo', extension)
+        project.extensions.create('githubRepo', extension)
 
         setDefaultCredentials(project, extension)
 
@@ -56,15 +56,15 @@ class GitMavenRepoPlugin implements Plugin<Project> {
      * @param extension the plugin extension
      */
     private void configureTasks(final Project project, final GitMavenRepoExtension extension) {
-        Preconditions preconditions = project.tasks.add(PRECONDITIONS_TASK_NAME, Preconditions)
+        Preconditions preconditions = project.tasks.create(PRECONDITIONS_TASK_NAME, Preconditions)
         preconditions.description = 'Check preconditions for the git-maven-repo plugin'
         
-        Delete clean = project.tasks.add(CLEAN_TASK_NAME, Delete)
+        Delete clean = project.tasks.create(CLEAN_TASK_NAME, Delete)
         clean.description = 'Cleans the working path of the repo.'
         clean.delete { extension.workingPath }
         clean.dependsOn preconditions
 
-        GitClone clone = project.tasks.add(CLONE_TASK_NAME, GitClone)
+        GitClone clone = project.tasks.create(CLONE_TASK_NAME, GitClone)
         clone.description = 'Clones the Github repo checking out the defined branch'
         clone.dependsOn clean
         clone.conventionMapping.credentials = { extension.credentials }
@@ -78,21 +78,21 @@ class GitMavenRepoPlugin implements Plugin<Project> {
             }
         }
 
-        GitAdd add = project.tasks.add(ADD_TASK_NAME, GitAdd)
+        GitAdd add = project.tasks.create(ADD_TASK_NAME, GitAdd)
         add.description = 'Adds all changes to the working defined repo'
         add.dependsOn clone
 
-        GitCommit commit = project.tasks.add(COMMIT_TASK_NAME, GitCommit)
+        GitCommit commit = project.tasks.create(COMMIT_TASK_NAME, GitCommit)
         commit.description = 'Commits all changes to the working defined repo'
         commit.message = {"${project.name}-${project.version}"}
         commit.dependsOn add
 
-        GitPush push = project.tasks.add(PUSH_TASK_NAME, GitPush)
+        GitPush push = project.tasks.create(PUSH_TASK_NAME, GitPush)
         push.description = 'Pushes all changes in the working defined repo to Github'
         push.dependsOn commit
         push.conventionMapping.credentials = { extension.credentials }
 
-        Task publish = project.tasks.add(PUBLISH_TASK_NAME)
+        Task publish = project.tasks.create(PUBLISH_TASK_NAME)
         publish.description = 'Publishes all defined repo changes to Github'
         publish.dependsOn push
 

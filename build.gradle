@@ -10,7 +10,6 @@ apply plugin: 'groovy'
 apply plugin: 'maven'
 
 dependencies {
-    groovy localGroovy()
     compile gradleApi()
     compile 'org.ajoberstar:gradle-git:0.5.0'
 }
