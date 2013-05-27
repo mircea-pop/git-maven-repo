@@ -31,7 +31,7 @@ class GitMavenRepoExtension {
 
     String getWorkingPath() {
         def mavenRepositories = project.tasks.uploadArchives.repositories
-        def workingPath = mavenRepositories.find(){it instanceof BaseMavenDeployer}.repository.url
+        def workingPath = mavenRepositories.find(){it instanceof BaseMavenDeployer}?.repository?.url
         
         if (workingPath?.endsWith("/releases")) {
             workingPath = workingPath.minus("/releases")

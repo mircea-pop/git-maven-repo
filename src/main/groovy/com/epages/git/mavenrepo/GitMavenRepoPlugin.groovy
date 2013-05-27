@@ -10,7 +10,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.plugins.MavenPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
 
@@ -31,11 +30,11 @@ class GitMavenRepoPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        project.apply (plugin : MavenPlugin)
+        //project.apply (plugin : MavenPlugin)
 
         GitMavenRepoExtension extension = new GitMavenRepoExtension(project)
 
-        project.extensions.create('githubRepo', extension)
+        project.extensions.add('githubRepo', extension)
 
         setDefaultCredentials(project, extension)
 
@@ -58,11 +57,11 @@ class GitMavenRepoPlugin implements Plugin<Project> {
     private void configureTasks(final Project project, final GitMavenRepoExtension extension) {
         Preconditions preconditions = project.tasks.create(PRECONDITIONS_TASK_NAME, Preconditions)
         preconditions.description = 'Check preconditions for the git-maven-repo plugin'
-        
+
         Delete clean = project.tasks.create(CLEAN_TASK_NAME, Delete)
         clean.description = 'Cleans the working path of the repo.'
-        clean.delete { extension.workingPath }
         clean.dependsOn preconditions
+        clean.delete { extension.workingPath }
 
         GitClone clone = project.tasks.create(CLONE_TASK_NAME, GitClone)
         clone.description = 'Clones the Github repo checking out the defined branch'
