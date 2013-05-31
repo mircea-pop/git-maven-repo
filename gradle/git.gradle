@@ -1,5 +1,7 @@
 apply plugin: 'github-pages'
 
+def String COMMIT_MESSAGE_PROP = "commitMessage"
+
 githubPages {
     repoUri = 'git@github.com:ePages-de/maven-repo.git'
     workingPath = localDeploymentFolder
@@ -7,7 +9,13 @@ githubPages {
 
 def GIT_MV_REPO_GROUP = "Git Maven Repo"
 
-commitGhPages.message = "${project.name}-${project.version}"
+def commitMessage = "${project.name}-${project.version}"
+
+if (project.hasProperty(COMMIT_MESSAGE_PROP)) {
+    commitMessage = project[COMMIT_MESSAGE_PROP]
+}
+
+commitGhPages.message = commitMessage
 
 task('publish2Git', dependsOn: project.pushGhPages) {
     group = GIT_MV_REPO_GROUP
