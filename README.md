@@ -33,7 +33,11 @@ In order to use it, you have to define the `uploadArchives` task and then run
 gradle publishGitRepo
 ```
 
-The plugin is `snapshots` and `releases` aware.   
+By default, the commit message is automatically set to `project.name-project.version`. 
+This can be overwritten on the command line with the property `commitMessage`.
+```
+gradle publishGitRepo -PcommitMessage="Configured commit Message"
+```
 
 ###`uploadArchives`
 
@@ -77,6 +81,9 @@ uploadArchives {
     }
 }
 ```
+
+The plugin is `snapshots` and `releases` aware.  
+
 
 ### Configuring Repository To Push To
 
