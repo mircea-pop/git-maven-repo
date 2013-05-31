@@ -10,6 +10,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.plugins.MavenPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
 
@@ -18,6 +19,7 @@ import com.epages.git.mavenrepo.task.Preconditions
 class GitMavenRepoPlugin implements Plugin<Project> {
     private static final String USERNAME_PROP = 'github.credentials.username'
     private static final String PASSWORD_PROP = 'github.credentials.password'
+    private static final String COMMIT_MSG_PROP = 'commitMessage'
 
     private static final String TASK_GROUP_NAME = "git-mvn-Repo"
     private static final String CLEAN_TASK_NAME = 'cleanGitRepo'
@@ -30,7 +32,7 @@ class GitMavenRepoPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        //project.apply (plugin : MavenPlugin)
+        project.apply (plugin : MavenPlugin)
 
         GitMavenRepoExtension extension = new GitMavenRepoExtension(project)
 
@@ -83,7 +85,12 @@ class GitMavenRepoPlugin implements Plugin<Project> {
 
         GitCommit commit = project.tasks.create(COMMIT_TASK_NAME, GitCommit)
         commit.description = 'Commits all changes to the working defined repo'
-        commit.message = {"${project.name}-${project.version}"}
+        def commitMessage = {"${project.name}-${project.version}"}
+        if(project.hasProperty(COMMIT_MSG_PROP))
+        {
+            commitMessage = project[COMMIT_MSG_PROP]
+        }
+        commit.message = commitMessage
         commit.dependsOn add
 
         GitPush push = project.tasks.create(PUSH_TASK_NAME, GitPush)
